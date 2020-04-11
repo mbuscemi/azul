@@ -12,6 +12,7 @@ fn main() {
             AppResources, Epoch, FakeRenderApi,
             ImageSource, LoadedImageSource,
             FontSource, LoadedFontSource,
+            LoadFontFn, LoadImageFn,
         },
         dom::{DomId, Dom},
         display_list::{SolvedLayout, CachedDisplayList},
@@ -22,8 +23,8 @@ fn main() {
         window::{WindowSize, FullWindowState, LogicalSize},
     };
 
-    fn load_font(_: &FontSource) -> Option<LoadedFontSource> { None }
-    fn load_image(_: &ImageSource) -> Option<LoadedImageSource> { None }
+    let load_font = LoadFontFn(|_: &FontSource| -> Option<LoadedFontSource> { None });
+    let load_image = LoadImageFn(|_: &ImageSource| -> Option<LoadedImageSource> { None });
 
     let mut app_resources = AppResources::new();
     let mut render_api = FakeRenderApi::new();

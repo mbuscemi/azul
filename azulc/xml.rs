@@ -87,7 +87,7 @@ pub struct ComponentArguments {
 
 impl Default for ComponentArguments {
     fn default() -> Self {
-        Self { 
+        Self {
             args: ComponentArgumentsMap::default(),
             accepts_text: false,
         }
@@ -503,8 +503,8 @@ impl fmt::Display for RenderDomError {
 
 /// Tries to look for a `<link type="stylesheet" href="blah.css" />`
 /// in the `<head>` node, then parse the CSS
-pub fn load_style_file_from_xml<I: AsRef<Path>>(html_path: I, xml: &[XmlNode]) 
--> Result<Css, LoadStyleFileError> 
+pub fn load_style_file_from_xml<I: AsRef<Path>>(html_path: I, xml: &[XmlNode])
+-> Result<Css, LoadStyleFileError>
 {
     use std::path::PathBuf;
     use std::fs;
@@ -513,7 +513,7 @@ pub fn load_style_file_from_xml<I: AsRef<Path>>(html_path: I, xml: &[XmlNode])
         let head_node = find_node_by_type(xml, "head")?;
         let link_node = find_node_by_type(&head_node.children, "link")?;
         if find_attribute(link_node, "rel")?.as_str() != "stylesheet" {
-            return None; 
+            return None;
         }
         find_attribute(link_node, "href").cloned()
     }
@@ -539,7 +539,7 @@ use azul_core::{
 
 #[cfg(all(feature = "image_loading", feature = "font_loading"))]
 pub fn layout_dom<T>(dom: Dom<T>, css: &Css, root_size: LogicalSize) -> CachedDisplayList {
-    
+
     use std::rc::Rc;
     use azul_core::{
         app_resources::{AppResources, LoadImageFn, LoadFontFn, Epoch, FakeRenderApi},
@@ -841,7 +841,7 @@ pub fn get_xml_components<T>(root_nodes: &[XmlNode], components: &mut XmlCompone
     Ok(())
 }
 
-/// Searches in the the `root_nodes` for a `node_type`, convenience function in order to 
+/// Searches in the the `root_nodes` for a `node_type`, convenience function in order to
 /// for example find the first <blah /> node in all these nodes.
 pub fn find_node_by_type<'a>(root_nodes: &'a [XmlNode], node_type: &str) -> Option<&'a XmlNode> {
     root_nodes.iter().find(|n| normalize_casing(&n.node_type).as_str() == node_type)
@@ -900,26 +900,26 @@ pub fn format_component_args(component_args: &ComponentArgumentsMap) -> String {
     let mut args = component_args.iter().map(|(arg_name, (arg_type, arg_index))| {
         (*arg_index, format!("{}: {}", arg_name, arg_type))
     }).collect::<Vec<(usize, String)>>();
-    
+
     args.sort_by(|(_, a), (_, b)| b.cmp(&a));
 
     args.iter().map(|(k, v)| v.clone()).collect::<Vec<String>>().join(", ")
 }
 
 pub fn compile_component(
-    component_name: &str, 
-    component_args: &ComponentArguments, 
-    component_function_body: &str, 
+    component_name: &str,
+    component_args: &ComponentArguments,
+    component_function_body: &str,
 ) -> String {
 
-    let function_args = format_component_args(&component_args.args);    
+    let function_args = format_component_args(&component_args.args);
     let component_function_body = component_function_body.lines().map(|l| format!("    {}", l)).collect::<Vec<String>>().join("\r\n");
     let should_inline = component_function_body.lines().count() == 1;
     format!(
         "{}fn render_component_{}{}({}{}{}) -> Dom<T> {{\r\n{}\r\n}}",
         if should_inline { "#[inline]\r\n" } else { "" },
         normalize_casing(component_name),
-        // pass the text content as the first 
+        // pass the text content as the first
         if component_args.accepts_text { "<T: Layout, I: Into<DomString>>" } else { "<T: Layout>" },
         if component_args.accepts_text { "text: I" } else { "" },
         if function_args.is_empty() || !component_args.accepts_text { "" } else { ", " },
@@ -1025,8 +1025,8 @@ pub fn set_attributes<T>(dom: &mut Dom<T>, xml_attributes: &XmlAttributeMap, fil
 }
 
 pub fn set_stringified_attributes(
-    dom_string: &mut String, 
-    xml_attributes: &XmlAttributeMap, 
+    dom_string: &mut String,
+    xml_attributes: &XmlAttributeMap,
     filtered_xml_attributes: &ComponentArgumentsMap,
     tabs: usize,
 ) {
@@ -1121,16 +1121,16 @@ pub fn split_dynamic_string(input: &str) -> Vec<DynamicItem> {
         let c = input[current_idx];
         match c {
             '{' if input.get(current_idx + 1).copied() != Some('{') => {
-                
+
                 // variable start, search until next closing brace or whitespace or end of string
                 let mut start_offset = 1;
                 let mut has_found_variable = false;
                 while let Some(c) = input.get(current_idx + start_offset) {
                     if c.is_whitespace() { break; }
-                    if *c == '}' && input.get(current_idx + start_offset + 1).copied() != Some('}') { 
+                    if *c == '}' && input.get(current_idx + start_offset + 1).copied() != Some('}') {
                         start_offset += 1;
-                        has_found_variable = true; 
-                        break; 
+                        has_found_variable = true;
+                        break;
                     }
                     start_offset += 1;
                 }
@@ -1139,7 +1139,7 @@ pub fn split_dynamic_string(input: &str) -> Vec<DynamicItem> {
                 // on fail, set cursor to end
                 // set last_idx accordingly
                 if has_found_variable {
-                    
+
                     if last_idx != current_idx {
                         items.push(Str(input[last_idx..current_idx].iter().collect()));
                     }
@@ -1177,7 +1177,7 @@ pub fn split_dynamic_string(input: &str) -> Vec<DynamicItem> {
 /// => "hello value1, valuec{ {c} }"
 pub fn combine_and_replace_dynamic_items(input: &[DynamicItem], variables: &ComponentArgumentsMap) -> String {
     let mut s = String::new();
-    
+
     for item in input {
         match item {
             DynamicItem::Var(v) => {
@@ -1192,7 +1192,7 @@ pub fn combine_and_replace_dynamic_items(input: &[DynamicItem], variables: &Comp
                 }
             },
             DynamicItem::Str(dynamic_str) => {
-                s.push_str(&dynamic_str); 
+                s.push_str(&dynamic_str);
             }
         }
     }
@@ -1313,13 +1313,13 @@ pub fn render_component_inner<T>(
     set_stringified_attributes(&mut dom_string, &xml_node.attributes, &filtered_xml_attributes.args, tabs + 1);
 
     for child_node in &xml_node.children {
-        dom_string.push_str(&format!("\r\n{}.with_child(\r\n{}{}\r\n{})", 
+        dom_string.push_str(&format!("\r\n{}.with_child(\r\n{}{}\r\n{})",
             t, t1, compile_node_to_rust_code_inner(child_node, component_map, &filtered_xml_attributes, tabs + 1)?, t,
         ));
     }
 
     map.insert(component_name, (dom_string, filtered_xml_attributes));
-    
+
     Ok(())
 }
 
@@ -1342,7 +1342,7 @@ pub fn compile_body_node_to_rust_code<T>(body_node: &XmlNode, component_map: &Xm
     let t2 = "        ";
     let mut dom_string = String::from("Dom::body()");
     for child_node in &body_node.children {
-        dom_string.push_str(&format!("\r\n{}.with_child(\r\n{}{}\r\n{})", 
+        dom_string.push_str(&format!("\r\n{}.with_child(\r\n{}{}\r\n{})",
             t, t2, compile_node_to_rust_code_inner(child_node, component_map, &FilteredComponentArguments::default(), 2)?, t
         ));
     }
@@ -1371,9 +1371,9 @@ fn compile_and_format_dynamic_items(input: &[DynamicItem]) -> String {
                     formatted_str.push_str(&format!("{{{}}}", variable_name));
                     variables.push(variable_name.clone());
                 },
-                Str(s) => { 
+                Str(s) => {
                     let s = s.replace("\"", "\\\"");
-                    formatted_str.push_str(&s); 
+                    formatted_str.push_str(&s);
                 },
             }
         }
@@ -1395,12 +1395,12 @@ fn format_args_for_rust_code(input: &str) -> String {
 }
 
 pub fn compile_node_to_rust_code_inner<T>(
-    node: &XmlNode, 
-    component_map: &XmlComponentMap<T>, 
+    node: &XmlNode,
+    component_map: &XmlComponentMap<T>,
     parent_xml_attributes: &FilteredComponentArguments,
     tabs: usize,
 ) -> Result<String, CompileError> {
-    
+
     let t = String::from("    ").repeat(tabs);
     let t2 = String::from("    ").repeat(tabs + 1);
 
@@ -1442,12 +1442,12 @@ pub fn compile_node_to_rust_code_inner<T>(
         .collect::<Vec<(usize, String)>>();
 
         args.sort_by(|(_, a), (_, b)| a.cmp(&b));
-    
+
         args.into_iter().map(|(k, v)| v.clone()).collect::<Vec<String>>().join(", ")
     };
 
-    let text_as_first_arg = 
-        if filtered_xml_attributes.accepts_text { 
+    let text_as_first_arg =
+        if filtered_xml_attributes.accepts_text {
             let node_text = node.text.clone().unwrap_or_default();
             let node_text = format_args_for_rust_code(node_text.trim());
             let trailing_comma = if !instantiated_function_arguments.is_empty() { ", " } else { "" };
@@ -1457,9 +1457,9 @@ pub fn compile_node_to_rust_code_inner<T>(
             //   "{text}" => "text"
             //   "{href}" => "href"
             //   "{blah}_the_thing" => "format!(\"{blah}_the_thing\", blah)"
-            
-            format!("{}{}", node_text, trailing_comma) 
-        } else { 
+
+            format!("{}{}", node_text, trailing_comma)
+        } else {
             String::new()
         };
 
@@ -1469,7 +1469,7 @@ pub fn compile_node_to_rust_code_inner<T>(
 
     for child_node in &node.children {
         dom_string.push_str(
-            &format!("\r\n{}.with_child(\r\n{}{}\r\n{})", 
+            &format!("\r\n{}.with_child(\r\n{}{}\r\n{})",
                 t, t2, compile_node_to_rust_code_inner(child_node, component_map, &filtered_xml_attributes, tabs + 1)?, t
             )
         );
@@ -1574,17 +1574,6 @@ fn test_compile_dom_1() {
         // assert_eq!(component_string, expected);
     }
 
-    fn test_app_source_code(input: &str, expected: &str) {
-        let mut component_map = XmlComponentMap::<Dummy>::default();
-        let root_nodes = parse_xml_string(input).unwrap();
-        get_xml_components(&root_nodes, &mut component_map).unwrap();
-        let body_node = get_body_node(&root_nodes).unwrap();
-        let app_source = compile_body_node_to_rust_code(&body_node, &component_map).unwrap();
-
-        // TODO!
-        // assert_eq!(app_source, expected);
-    }
-
     let s1 = r#"
         <component name="test">
             <div id="a" class="b" draggable="true"></div>
@@ -1603,24 +1592,27 @@ fn test_compile_dom_1() {
     test_component_source_code(&s1, "test", &s1_expected);
 }
 
-#[test]
-fn test_format_args_dynamic() {
-    let mut variables = FilteredComponentArguments::new();
-    variables.insert("a".to_string(), "value1".to_string());
-    variables.insert("b".to_string(), "value2".to_string());
-    assert_eq!(
-        format_args_dynamic("hello {a}, {b}{{ {c} }}", &variables),
-        String::from("hello value1, value2{ {c} }"),
-    );
-    assert_eq!(
-        format_args_dynamic("hello {{a}, {b}{{ {c} }}", &variables),
-        String::from("hello {a}, value2{ {c} }"),
-    );
-    assert_eq!(
-        format_args_dynamic("hello {{{{{{{ a   }}, {b}{{ {c} }}", &variables),
-        String::from("hello {{{{{{ a   }, value2{ {c} }"),
-    );
-}
+// [TODO] Removing this test. It appears that FilteredComponentArguments was part of azul/xml.rs, which no longer exists.
+// mbuscemi 2020.04.11
+
+// #[test]
+// fn test_format_args_dynamic() {
+//     let mut variables = FilteredComponentArguments::new();
+//     variables.insert("a".to_string(), "value1".to_string());
+//     variables.insert("b".to_string(), "value2".to_string());
+//     assert_eq!(
+//         format_args_dynamic("hello {a}, {b}{{ {c} }}", &variables),
+//         String::from("hello value1, value2{ {c} }"),
+//     );
+//     assert_eq!(
+//         format_args_dynamic("hello {{a}, {b}{{ {c} }}", &variables),
+//         String::from("hello {a}, value2{ {c} }"),
+//     );
+//     assert_eq!(
+//         format_args_dynamic("hello {{{{{{{ a   }}, {b}{{ {c} }}", &variables),
+//         String::from("hello {{{{{{ a   }, value2{ {c} }"),
+//     );
+// }
 
 #[test]
 fn test_normalize_casing() {
@@ -1635,44 +1627,47 @@ fn test_normalize_casing() {
     assert_eq!(normalize_casing("StartScreen"), String::from("start_screen"));
 }
 
-#[test]
-fn test_parse_component_arguments() {
+// [TODO] Removing this test. It appears that ComponentArguments was part of azul/xml.rs, which no longer exists.
+// mbuscemi 2020.04.11
 
-    let mut args_1_expected = ComponentArguments::new();
-    args_1_expected.insert("selected_date".to_string(), "DateTime".to_string());
-    args_1_expected.insert("minimum_date".to_string(), "DateTime".to_string());
-    args_1_expected.insert("grid_visible".to_string(), "bool".to_string());
-
-    // Everything OK
-    assert_eq!(
-        parse_component_arguments("gridVisible: bool, selectedDate: DateTime, minimumDate: DateTime"),
-        Ok(args_1_expected)
-    );
-
-    // Missing type for selectedDate
-    assert_eq!(
-        parse_component_arguments("gridVisible: bool, selectedDate: , minimumDate: DateTime"),
-        Err(ComponentParseError::MissingType(1, "selectedDate".to_string()))
-    );
-
-    // Missing name for first argument
-    assert_eq!(
-        parse_component_arguments(": bool, selectedDate: DateTime, minimumDate: DateTime"),
-        Err(ComponentParseError::MissingName(0))
-    );
-
-    // Missing comma after DateTime
-    assert_eq!(
-        parse_component_arguments("gridVisible: bool, selectedDate: DateTime  minimumDate: DateTime"),
-        Err(ComponentParseError::WhiteSpaceInComponentType(1, "selectedDate".to_string(), "DateTime  minimumDate".to_string()))
-    );
-
-    // Missing colon after gridVisible
-    assert_eq!(
-        parse_component_arguments("gridVisible: bool, selectedDate DateTime, minimumDate: DateTime"),
-        Err(ComponentParseError::WhiteSpaceInComponentName(1, "selectedDate DateTime".to_string()))
-    );
-}
+// #[test]
+// fn test_parse_component_arguments() {
+//
+//     let mut args_1_expected = ComponentArguments::new();
+//     args_1_expected.insert("selected_date".to_string(), "DateTime".to_string());
+//     args_1_expected.insert("minimum_date".to_string(), "DateTime".to_string());
+//     args_1_expected.insert("grid_visible".to_string(), "bool".to_string());
+//
+//     // Everything OK
+//     assert_eq!(
+//         parse_component_arguments("gridVisible: bool, selectedDate: DateTime, minimumDate: DateTime"),
+//         Ok(args_1_expected)
+//     );
+//
+//     // Missing type for selectedDate
+//     assert_eq!(
+//         parse_component_arguments("gridVisible: bool, selectedDate: , minimumDate: DateTime"),
+//         Err(ComponentParseError::MissingType(1, "selectedDate".to_string()))
+//     );
+//
+//     // Missing name for first argument
+//     assert_eq!(
+//         parse_component_arguments(": bool, selectedDate: DateTime, minimumDate: DateTime"),
+//         Err(ComponentParseError::MissingName(0))
+//     );
+//
+//     // Missing comma after DateTime
+//     assert_eq!(
+//         parse_component_arguments("gridVisible: bool, selectedDate: DateTime  minimumDate: DateTime"),
+//         Err(ComponentParseError::WhiteSpaceInComponentType(1, "selectedDate".to_string(), "DateTime  minimumDate".to_string()))
+//     );
+//
+//     // Missing colon after gridVisible
+//     assert_eq!(
+//         parse_component_arguments("gridVisible: bool, selectedDate DateTime, minimumDate: DateTime"),
+//         Err(ComponentParseError::WhiteSpaceInComponentName(1, "selectedDate DateTime".to_string()))
+//     );
+// }
 
 #[test]
 fn test_xml_get_item() {

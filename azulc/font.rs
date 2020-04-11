@@ -130,12 +130,10 @@ fn test_font_gc() {
     }
 
     fn build_ui(xml: &str, css: &str) -> (UiState<Mock>, UiDescription, DisplayList) {
-        use azul_css::from_str as css_from_str;
-
         let is_mouse_down = false;
         let focused_node = None;
         let hovered_nodes = BTreeMap::new();
-        let css = css_from_str(css).unwrap();
+        let css = azul_css_parser::new_from_str(css).unwrap();
 
         let mut ui_state = UiState::new(DomXml::mock(xml).into_dom(), None);
         let ui_description = UiDescription::new(&mut ui_state, &css, &focused_node, &hovered_nodes, is_mouse_down);
