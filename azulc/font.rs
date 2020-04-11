@@ -1,7 +1,5 @@
 #![cfg(feature = "font_loading")]
 
-use azul_css;
-
 /// Returns the font file contents from the computer + the font index
 pub fn load_system_font(id: &str) -> Option<(Vec<u8>, i32)> {
     use font_loader::system_fonts::{self, FontPropertyBuilder};
@@ -110,8 +108,11 @@ fn test_font_gc() {
             scan_ui_description_for_image_keys,
             scan_ui_description_for_font_keys,
             garbage_collect_fonts_and_images,
-            add_fonts_and_images, FontMetrics,
+            add_fonts_and_images, LoadFontFn, LoadImageFn,
+            FontMetrics, FontSource, LoadedFontSource, ImmediateFontId,
+            ImageSource, LoadedImageSource, ImageData, ImageDescriptor, RawImageFormat,
         },
+        callbacks::PipelineId,
         display_list::DisplayList,
     };
     use crate::xml::DomXml;
@@ -129,7 +130,6 @@ fn test_font_gc() {
     }
 
     fn build_ui(xml: &str, css: &str) -> (UiState<Mock>, UiDescription, DisplayList) {
-
         use azul_css::from_str as css_from_str;
 
         let is_mouse_down = false;
@@ -145,16 +145,16 @@ fn test_font_gc() {
     }
 
     #[cfg(feature = "font_loading")]
-    fn fake_load_font_fn(_f: &FontSource) -> Option<LoadedFontSource> {
+    let fake_load_font_fn = LoadFontFn(|_f: &FontSource| -> Option<LoadedFontSource> {
         Some(LoadedFontSource {
             font_bytes: Vec::new(),
             font_index: 0,
             font_metrics: FontMetrics::zero(),
         })
-    }
+    });
 
     #[cfg(feature = "image_loading")]
-    fn fake_load_image_font_fn(_i: &ImageSource) -> Option<LoadedImageSource> {
+    let fake_load_image_font_fn = LoadImageFn(|_i: &ImageSource| -> Option<LoadedImageSource> {
         Some(LoadedImageSource {
             image_bytes_decoded: ImageData::Raw(Arc::new(Vec::new())),
             image_descriptor: ImageDescriptor {
@@ -166,7 +166,7 @@ fn test_font_gc() {
                 allow_mipmaps: false,
             },
         })
-    }
+    });
 
     struct Mock;
 

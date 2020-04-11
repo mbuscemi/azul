@@ -9,12 +9,10 @@ use glutin::{
         WindowId as GlutinWindowId,
     },
     event::ModifiersState as GlutinModifiersState,
-    event_loop::EventLoopWindowTarget as GlutinEventLoopWindowTarget,
 };
 use gleam::gl::{self, Gl, GLuint};
 use webrender::{
     PipelineInfo as WrPipelineInfo,
-    Renderer as WrRenderer,
     api::{
         LayoutSize as WrLayoutSize,
         DeviceIntSize as WrDeviceIntSize,
@@ -24,10 +22,7 @@ use webrender::{
 #[cfg(feature = "logging")]
 use log::LevelFilter;
 use azul_css::{ColorU, HotReloadHandler};
-use crate::{
-    resources::WrApi,
-    window::{Window, ScrollStates, HeadlessContextState}
-};
+use crate::window::ScrollStates;
 use azul_core::{
     FastHashMap,
     window::{RendererType, WindowCreateOptions, WindowSize, DebugState, WindowState, FullWindowState},
@@ -36,14 +31,12 @@ use azul_core::{
     traits::Layout,
     ui_state::UiState,
     ui_solver::ScrolledNodes,
-    callbacks::{LayoutCallback, HitTestItem, Redraw},
+    callbacks::{LayoutCallback, HitTestItem, PipelineId},
     task::{Task, Timer, TimerId},
-    window::{AzulUpdateEvent, CallbacksOfHitTest, KeyboardState, WindowId},
-    callbacks::PipelineId,
+    window::{CallbacksOfHitTest, KeyboardState, WindowId},
     ui_description::UiDescription,
-    display_list::CachedDisplayList,
     app_resources::{
-        AppResources, Epoch, FontId, ImageId, LoadedFont, ImmediateFontId,
+        AppResources, FontId, ImageId, LoadedFont, ImmediateFontId,
         TextId, ImageSource, FontSource, CssImageId, ImageInfo, LoadFontFn, LoadImageFn,
     },
 };
@@ -54,6 +47,19 @@ use crate::window::{ FakeDisplay };
 use glutin::CreationError;
 #[cfg(not(test))]
 use webrender::api::{WorldPoint, HitTestFlags};
+#[cfg(not(test))]
+use glutin::event_loop::EventLoopWindowTarget as GlutinEventLoopWindowTarget;
+#[cfg(not(test))]
+use webrender::Renderer as WrRenderer;
+#[cfg(not(test))]
+use crate::{resources::WrApi, window::{Window, HeadlessContextState}};
+#[cfg(not(test))]
+use azul_core::{
+    callbacks::Redraw,
+    window::AzulUpdateEvent,
+    display_list::CachedDisplayList,
+    app_resources::Epoch
+};
 
 #[cfg(test)]
 use azul_core::app_resources::FakeRenderApi;
@@ -140,7 +146,7 @@ pub struct AppConfig {
     /// implementations of loading fonts
     pub font_loading_fn: LoadFontFn,
     /// Function that is called when a font should be loaded. Necessary to be
-    /// configurable so that "desktop" and "web" versions of azul can have 
+    /// configurable so that "desktop" and "web" versions of azul can have
     /// different implementations of loading images.
     pub image_loading_fn: LoadImageFn,
 }
@@ -307,8 +313,6 @@ impl<T: 'static> App<T> {
         let mut last_style_reload = Instant::now();
 
         hidden_event_loop.run(move |event, event_loop_target, control_flow| {
-
-            let now = Instant::now();
 
             match event {
                 Event::DeviceEvent { .. } => {
@@ -665,26 +669,6 @@ impl<T: 'static> App<T> {
                         }
                     }
                 }
-
-                /*
-                // If no timers / tasks are running, wait until next user event
-                if timers.is_empty() && tasks.is_empty() {
-                    *control_flow = ControlFlow::Wait;
-                } else {
-                    use azul_core::task::{run_all_timers, clean_up_finished_tasks};
-
-                    // If timers are running, check whether they need to redraw
-                    let should_redraw_timers = run_all_timers(&mut timers, &mut data, &mut resources);
-                    let should_redraw_tasks = clean_up_finished_tasks(&mut tasks, &mut timers);
-                    let should_redraw_timers_tasks = [should_redraw_timers, should_redraw_tasks].iter().any(|i| *i == Redraw);
-                    if should_redraw_timers_tasks {
-                        *control_flow = ControlFlow::Poll;
-                        redraw_all_windows!();
-                    } else {
-                        *control_flow = ControlFlow::WaitUntil(now + config.min_frame_duration);
-                    }
-                }
-                */
             }
         })
     }
@@ -1305,7 +1289,7 @@ fn do_hit_test<T>(
 ) -> Vec<HitTestItem> {
 
     use crate::wr_translate::{
-        wr_translate_hittest_item, 
+        wr_translate_hittest_item,
         wr_translate_pipeline_id,
         wr_translate_document_id,
     };

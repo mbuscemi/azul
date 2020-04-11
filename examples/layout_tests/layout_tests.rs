@@ -9,7 +9,7 @@ extern crate azul_css;
 use std::fs;
 use azulc::{
     xml::{
-        self, XmlComponentMap, render_dom_from_app_node_inner,
+        self, XmlComponentMap, render_dom_from_body_node_inner,
         XmlNode, FilteredComponentArguments,
     },
 };
@@ -44,14 +44,27 @@ fn get_content<'a>(xml: &'a XmlNode) -> &'a str {
     xml.text.as_ref().map(|s| s.as_str()).unwrap_or(DEFAULT_STR)
 }
 
-fn create_display_list(dom: Dom<Mock>, css: &Css, size: (f32, f32)) -> CachedDisplayList {
+// Parse a string like "600x100" -> (600, 100)
+fn parse_size(output_size: &str) -> Option<(f32, f32)> {
+    let output_size = output_size.trim();
+    let mut iter = output_size.split("x");
+    let w = iter.next()?;
+    let h = iter.next()?;
+    let w = w.trim();
+    let h = h.trim();
+    let w = w.parse::<f32>().ok()?;
+    let h = h.parse::<f32>().ok()?;
+    Some((w, h))
+}
 
+fn create_display_list(dom: Dom<Mock>, css: &Css, size: (f32, f32)) -> CachedDisplayList {
     use std::{rc::Rc, collections::BTreeMap};
     use azul_core::{
         app_resources::{
             AppResources, Epoch, FakeRenderApi,
             ImageSource, LoadedImageSource,
             FontSource, LoadedFontSource,
+            LoadFontFn, LoadImageFn
         },
         dom::DomId,
         display_list::SolvedLayout,
@@ -62,8 +75,8 @@ fn create_display_list(dom: Dom<Mock>, css: &Css, size: (f32, f32)) -> CachedDis
         window::{FullWindowState, LogicalSize, WindowSize},
     };
 
-    fn load_font(_: &FontSource) -> Option<LoadedFontSource> { None }
-    fn load_image(_: &ImageSource) -> Option<LoadedImageSource> { None }
+    let load_font = LoadFontFn(|_: &FontSource| -> Option<LoadedFontSource> { None });
+    let load_image = LoadImageFn(|_: &ImageSource| -> Option<LoadedImageSource> { None });
 
     let mut app_resources = AppResources::new();
     let mut render_api = FakeRenderApi::new();
@@ -122,7 +135,6 @@ fn create_display_list(dom: Dom<Mock>, css: &Css, size: (f32, f32)) -> CachedDis
 }
 
 fn main() {
-
     use std::process::exit;
 
     const TESTS_DIRECTORY: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../tests");
@@ -145,7 +157,7 @@ fn main() {
             let body_node = find_root_node(&html_node.children, "body").unwrap();
             let style_node = find_root_node(&html_node.children, "style").unwrap();
 
-            let dom = render_dom_from_app_node_inner(&body_node, &XmlComponentMap::default(), &FilteredComponentArguments::default()).unwrap();
+            let dom = render_dom_from_body_node_inner(&body_node, &XmlComponentMap::default(), &FilteredComponentArguments::default()).unwrap();
             let css = azul_css_parser::new_from_str(get_content(style_node)).unwrap();
 
             // One <test> can have multiple <output> to test for different sizes
@@ -188,4 +200,3 @@ fn main() {
         exit(-1);
     }
 }
-

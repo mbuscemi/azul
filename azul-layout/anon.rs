@@ -196,8 +196,6 @@ impl AnonDom {
                             last_child: Some($id + (num_anon_nodes - 1)),
                         };
                     }
-
-                    last_anon_node = None;
                 })}
 
                 let mut last_child_is_inline_node = {
@@ -384,11 +382,7 @@ fn test_anon_dom() {
         ui_solver::{ResolvedTextLayoutOptions, InlineTextLayout, InlineTextLine},
         display_list::DisplayList,
     };
-    use azul_css::{
-        Css, Stylesheet, CssRuleBlock, CssPath, CssDeclaration,
-        CssPathSelector, CssProperty, LayoutDisplay,
-        LayoutRect, LayoutSize, LayoutPoint,
-    };
+    use azul_css::{ Css, LayoutRect, LayoutSize, LayoutPoint };
     use crate::GetStyle;
 
     struct Mock;

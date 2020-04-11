@@ -183,7 +183,7 @@ fn solve_heights<T: GetTextLayout>(
     let mut content_heights = BTreeMap::new();
     let mut children_height_sum = 0.0;
     let mut current_depth_level = anon_dom_depths.last().map(|(s, _)| *s).unwrap_or(0);
-    let mut last_parent = None;
+    let mut last_parent;
 
     for (depth, parent_node_id) in anon_dom_depths.iter().rev() {
 
@@ -193,7 +193,7 @@ fn solve_heights<T: GetTextLayout>(
             if let Some(last_parent) = last_parent {
                 content_heights.insert(last_parent, children_height_sum);
             }
-            last_parent = None;
+
             children_height_sum = 0.0;
             current_depth_level = *depth;
         }
@@ -288,7 +288,7 @@ fn position_items(
     // In order to do a block layout, we first have to know whether
     // can overflow the parent horizontally.
 
-    let mut cur_x = 0.0;
+    let mut cur_x;
     let mut cur_y = 0.0;
 
     // stack to track what the last position: absolute item was
@@ -308,11 +308,6 @@ fn position_items(
             cur_depth = *depth;
         }
 
-        let parent_width = match anon_dom.anon_node_hierarchy[*parent_node_id].parent {
-            None => (root_size.width, StyleOverflow::Scroll),
-            Some(s) => (positioned_rects[s].bounds.size.width, anon_dom.anon_node_data[s].get_overflow_x()),
-        };
-
         let parent_content_size = positioned_rects[*parent_node_id].bounds.size.width;
 
         let parent_node = &anon_dom.anon_node_data[*parent_node_id];
@@ -331,7 +326,6 @@ fn position_items(
 
             let child_anon_node = &anon_dom.anon_node_data[child_id];
             let child_display_mode = child_anon_node.get_display();
-            let child_position_type = child_anon_node.get_position_type();
 
             let child_rect = &mut positioned_rects[child_id];
 
@@ -355,21 +349,6 @@ fn position_items(
                         cur_x = 0.0; // line break
                         cur_y += child_rect.get_margin_box_height();
                     }
-
-                    // if is_inline {
-                    //      cur_x += inline_text_layout.last_line.origin.y + right_leading;
-                    //
-                    //      // if two following texts have different font sizes,
-                    //      // align the two texts to their baseline
-                    //
-                    //      if last_inline_text.font_size > this_inline_text.font_size {
-                    //           shift_down_first_line(this_inline_text, last_inline_text.baseline - this_inline_text.baseline);
-                    //      } else if this_inline_text.font_size > last_inline_text.font_size {
-                    //           shift_down_last_line(last_inline_text, this_inline_text.baseline - last_inline_text.baseline);
-                    //      }
-                    //      adjust_second_line_of_current_text(margin_bottom);
-                    //      cur_y = inline_text_layout.last_line.origin.y + baseline_adjustment;
-                    // }
                 }
             }
         }
@@ -423,7 +402,7 @@ fn position_items(
                 },
                 PositionType::Fixed => {
                     let child_rect = &mut positioned_rects[child_id];
-                    child_rect.bounds = figure_out_position(LayoutRect::new(LayoutPoint::zero(), root_size), previous_sibling_origin, child_anon_node.get_style(), &child_rect);
+                    child_rect.bounds = figure_out_position(LayoutRect::new(LayoutPoint::zero(), root_size), previous_sibling_origin, child_anon_node.get_style());
                 },
                 PositionType::Relative => {
 
@@ -465,7 +444,7 @@ fn position_items(
                     let last_positioned_node = position_relative_absolute_stack.last().copied().unwrap_or((NodeId::ZERO, 0));
                     let last_positioned_bounds = positioned_rects[last_positioned_node.0].bounds;
                     let child_rect = &mut positioned_rects[child_id];
-                    child_rect.bounds = figure_out_position(last_positioned_bounds, previous_sibling_origin, child_anon_node.get_style(), &child_rect);
+                    child_rect.bounds = figure_out_position(last_positioned_bounds, previous_sibling_origin, child_anon_node.get_style());
                 },
             }
         }
@@ -477,7 +456,6 @@ fn figure_out_position(
     parent: LayoutRect,
     previous_sibling_origin: LayoutPoint,
     child_style: &Style,
-    child_rect: &PositionedRectangle,
 ) -> LayoutRect {
 
     let top_offset = child_style.position.top.resolve(Defined(parent.size.height)).unwrap_or_zero();
@@ -541,48 +519,6 @@ fn figure_out_position(
         size: LayoutSize::new(width, height),
     }
 }
-
-/*
-    // Get the collapsed (left, right) margins of this node, i.e. the larger of the two margins
-    //
-    // NOTE: Only use when using horizontal layouts, not block layouts!
-    fn get_collapsed_horz_margin(
-        node_id: NodeId,
-        anon_node_hierarchy: &NodeHierarchy,
-        positioned_rects: &NodeDataContainer<PositionedRectangle>,
-    ) -> (f32, f32) {
-
-        let previous_sibling = &anon_node_hierarchy[node_id].previous_sibling;
-        let next_sibling = &anon_node_hierarchy[node_id].next_sibling;
-        let positioned_rect = &positioned_rects[node_id];
-        let (margin_right, margin_left) = (positioned_rect.margin.right, positioned_rect.margin.left);
-
-        let previous_sibling_margin_right = previous_sibling.map(|ps| positioned_rects[ps].margin.right).unwrap_or(0.0);
-        let next_sibling_margin_left = next_sibling.map(|ps| positioned_rects[ps].margin.left).unwrap_or(0.0);
-
-        (previous_sibling_margin_right.max(margin_left), next_sibling_margin_left.max(margin_right))
-    }
-
-    // Get the collapsed (top, bottom) margins of this node, i.e. the larger of the two margins
-    fn get_collapsed_vert_margin(
-        node_id: NodeId,
-        anon_node_hierarchy: &NodeHierarchy,
-        positioned_rects: &NodeDataContainer<PositionedRectangle>,
-    ) -> (f32, f32) {
-
-        let previous_sibling = &anon_node_hierarchy[node_id].previous_sibling;
-        let next_sibling = &anon_node_hierarchy[node_id].next_sibling;
-        let positioned_rect = &positioned_rects[node_id];
-        let (margin_top, margin_bottom) = (positioned_rect.margin.top, positioned_rect.margin.bottom);
-
-        let previous_sibling_margin_bottom = previous_sibling.map(|ps| positioned_rects[ps].margin.bottom).unwrap_or(0.0);
-        let next_sibling_margin_top = next_sibling.map(|ps| positioned_rects[ps].margin.top).unwrap_or(0.0);
-
-        (previous_sibling_margin_bottom.max(margin_top), next_sibling_margin_top.max(margin_bottom))
-    }
-*/
-
-// ------
 
 #[derive(Copy, Clone, Default)]
 struct BlockWidth {
@@ -901,8 +837,6 @@ fn calculate_block_height<T: GetTextLayout>(
         return BlockHeight::default();
     }
 
-    let ph = Defined(parent_height);
-
     let mut content_height = None;
     let mut height_is_defined = false;
 
@@ -913,10 +847,10 @@ fn calculate_block_height<T: GetTextLayout>(
                 Some(Image(image_width, image_height)) => {
                     Some(*image_width as f32 / *image_height as f32 * block_width)
                 },
-                Some(Text(t)) => {
+                Some(Text(_t)) => {
                     match resolved_text_layout_options {
                         None => None,
-                        Some((tlo, layouted_inline_text)) => {
+                        Some((_tlo, layouted_inline_text)) => {
                             let inline_text_bounds = layouted_inline_text.get_bounds();
                             Some(inline_text_bounds.size.height)
                         }
