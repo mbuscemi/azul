@@ -374,7 +374,6 @@ fn is_inline_node<T: GetTextLayout>(s: &Style, rect_contents: &BTreeMap<NodeId, 
 
 #[test]
 fn test_anon_dom() {
-
     use azul_core::{
         dom::Dom,
         ui_state::UiState,
@@ -386,7 +385,6 @@ fn test_anon_dom() {
     use crate::GetStyle;
 
     struct Mock;
-
     struct FakeTextMetricsProvider { }
 
     impl GetTextLayout for FakeTextMetricsProvider {
@@ -457,7 +455,7 @@ fn test_anon_dom() {
             },
             // Node 4 (div block with id "third"):
             Node {
-                parent: Some(NodeId::new(0)),
+                parent: Some(NodeId::new(1)),
                 first_child: None,
                 last_child: None,
                 previous_sibling: Some(NodeId::new(1)),

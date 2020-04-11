@@ -816,7 +816,7 @@ pub fn get_body_node(root_nodes: &[XmlNode]) -> Result<XmlNode, XmlParseError> {
 
     let mut body_node_iterator = root_nodes.iter().filter(|node| {
         let node_type_normalized = normalize_casing(&node.node_type);
-        &node_type_normalized == "body"
+        &node_type_normalized == "app"
     }).cloned();
 
     let body_node = body_node_iterator.next().ok_or(XmlParseError::NoRootComponent)?;
@@ -1579,9 +1579,9 @@ fn test_compile_dom_1() {
             <div id="a" class="b" draggable="true"></div>
         </component>
 
-        <body>
+        <app>
             <Test />
-        </body>
+        </app>
     "#;
     let s1_expected = r#"
         fn render_component_test<T>() -> Dom<T> {

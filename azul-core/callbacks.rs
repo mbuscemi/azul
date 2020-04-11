@@ -113,12 +113,16 @@ pub const DontRedraw: Option<()> = None;
 /// Applied to widgets, the "A" class (a placeholder for a "Button", "Table" or other widget)
 /// can look something like this:
 ///
-/// ```rust,no_run
-/// fn layout(&self, _: &LayoutInfo) -> Dom<T> {
+/// ```rust,no_run,compile_fail
+/// use azul_core::{ callbacks::LayoutInfo, dom::Dom };
+///
+/// struct Foo;
+///
+/// fn layout(_: &LayoutInfo) -> Dom<Foo> {
 ///     Spreadsheet::new()
-///         .override_oncellchange(my_func_1)
-///         .override_onworkspacechange(my_func_2)
-///         .override_oncellselect(my_func_3)
+///         .override_oncellchange(|| {})
+///         .override_onworkspacechange(|| {})
+///         .override_oncellselect(|| {})
 ///     .dom()
 /// }
 /// ```
@@ -319,11 +323,11 @@ pub struct HitTestItem {
 /// Implements `Display, Debug, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Hash`
 /// for a Callback with a `.0` field:
 ///
-/// ```
+/// ```rust,no_run,compile_fail
 /// struct MyCallback<T>(fn (&T));
 ///
 /// // impl <T> Display, Debug, etc. for MyCallback<T>
-/// impl_callback!(MyCallback<T>);
+/// impl_callback!(MyCallback::<T>);
 /// ```
 ///
 /// This is necessary to work around for https://github.com/rust-lang/rust/issues/54508

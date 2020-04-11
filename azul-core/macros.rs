@@ -33,14 +33,20 @@ macro_rules! impl_task_api {() => (
 
 /// Implement the `From` trait for any type.
 /// Example usage:
-/// ```
+/// ```rust,no_run,compile_fail
+/// use azul_core::impl_from;
+///
+/// struct Error { Foo, Bar }
+/// struct BarError;
+/// struct FooError;
+///
 /// enum MyError<'a> {
-///     Bar(BarError<'a>)
+///     Bar(BarError<'a>),
 ///     Foo(FooError<'a>)
 /// }
 ///
 /// impl_from!(BarError<'a>, Error::Bar);
-/// impl_from!(BarError<'a>, Error::Bar);
+/// impl_from!(FooError<'a>, Error::Foo);
 ///
 /// ```
 #[macro_export]
@@ -67,9 +73,9 @@ macro_rules! impl_from {
 /// Implement `Display` for an enum.
 ///
 /// Example usage:
-/// ```
+/// ```rust,no_run,compile_fail
 /// enum Foo<'a> {
-///     Bar(&'a str)
+///     Bar(&'a str),
 ///     Baz(i32)
 /// }
 ///
@@ -544,4 +550,3 @@ macro_rules! impl_callback_info_api {() => (
         *self.focus_target = Some(FocusTarget::NoFocus);
     }
 )}
-
