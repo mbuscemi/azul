@@ -127,22 +127,22 @@ pub(crate) mod winit_translate {
     use azul_core::window::{WaylandTheme, XWindowType};
 
     #[inline(always)]
-    pub(crate) fn translate_logical_position(input: LogicalPosition) -> WinitLogicalPosition {
+    pub(crate) fn translate_logical_position(input: LogicalPosition) -> WinitLogicalPosition<f64> {
         WinitLogicalPosition::new(input.x as f64, input.y as f64)
     }
 
     #[inline(always)]
-    pub(crate) fn translate_logical_size(input: LogicalSize) -> WinitLogicalSize {
+    pub(crate) fn translate_logical_size(input: LogicalSize) -> WinitLogicalSize<f64> {
         WinitLogicalSize::new(input.width as f64, input.height as f64)
     }
 
     #[inline(always)]
-    pub(crate) const fn translate_winit_logical_position(input: WinitLogicalPosition) -> LogicalPosition {
+    pub(crate) const fn translate_winit_logical_position(input: WinitLogicalPosition<f64>) -> LogicalPosition {
         LogicalPosition::new(input.x as f32, input.y as f32)
     }
 
     #[inline(always)]
-    pub(crate) const fn translate_winit_logical_size(input: WinitLogicalSize) -> LogicalSize {
+    pub(crate) const fn translate_winit_logical_size(input: WinitLogicalSize<f64>) -> LogicalSize {
         LogicalSize::new(input.width as f32, input.height as f32)
     }
 
@@ -167,11 +167,11 @@ pub(crate) mod winit_translate {
         }
     }
 
-    pub(crate) fn translate_physical_position(input: PhysicalPosition) -> WinitPhysicalPosition {
+    pub(crate) fn translate_physical_position(input: PhysicalPosition) -> WinitPhysicalPosition<f64> {
         WinitPhysicalPosition::new(input.x as f64, input.y as f64)
     }
 
-    pub(crate) fn translate_physical_size(input: PhysicalSize) -> WinitPhysicalSize {
+    pub(crate) fn translate_physical_size(input: PhysicalSize) -> WinitPhysicalSize<f64> {
         WinitPhysicalSize::new(input.width as f64, input.height as f64)
     }
 

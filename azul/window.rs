@@ -844,7 +844,7 @@ fn get_gl_context(gl_window: &Context<PossiblyCurrent>) -> Result<Rc<dyn Gl>, Gl
 #[allow(unused_variables)]
 fn get_hidpi_factor(window: &GlutinWindow, event_loop: &EventLoopWindowTarget<()>) -> (f32, f32) {
 
-    let winit_hidpi_factor = window.hidpi_factor() as f32;
+    let winit_hidpi_factor = window.scale_factor() as f32;
 
     #[cfg(target_os = "linux")] {
         use crate::glutin::platform::unix::EventLoopWindowTargetExtUnix;
@@ -873,10 +873,10 @@ fn create_headless_context(
     event_loop: &EventLoop<()>,
 ) -> Result<Context<NotCurrent>, GlutinCreationError> {
     use glutin::dpi::PhysicalSize as GlutinPhysicalSize;
-    create_window_context_builder(true, true, None).build_headless(event_loop, GlutinPhysicalSize::new(1.0, 1.0))
-        .or_else(|_| create_window_context_builder(true, false, None).build_headless(event_loop, GlutinPhysicalSize::new(1.0, 1.0)))
-        .or_else(|_| create_window_context_builder(false, true, None).build_headless(event_loop, GlutinPhysicalSize::new(1.0, 1.0)))
-        .or_else(|_| create_window_context_builder(false, false,None).build_headless(event_loop, GlutinPhysicalSize::new(1.0, 1.0)))
+    create_window_context_builder(true, true, None).build_headless(event_loop, GlutinPhysicalSize::new(1, 1))
+        .or_else(|_| create_window_context_builder(true, false, None).build_headless(event_loop, GlutinPhysicalSize::new(1, 1)))
+        .or_else(|_| create_window_context_builder(false, true, None).build_headless(event_loop, GlutinPhysicalSize::new(1, 1)))
+        .or_else(|_| create_window_context_builder(false, false,None).build_headless(event_loop, GlutinPhysicalSize::new(1, 1)))
 }
 
 
