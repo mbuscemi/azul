@@ -692,7 +692,7 @@ fn synchronize_os_window_linux_extensions(
     window: &GlutinWindow,
 ) {
     use glutin::platform::unix::WindowExtUnix;
-    use crate::wr_translate::winit_translate::{translate_window_icon, translate_wayland_theme};
+    use crate::wr_translate::winit_translate::{translate_window_icon};
 
     if old_state.request_user_attention != new_state.request_user_attention {
         window.set_urgent(new_state.request_user_attention);
@@ -700,7 +700,7 @@ fn synchronize_os_window_linux_extensions(
 
     if old_state.wayland_theme != new_state.wayland_theme {
         if let Some(new_wayland_theme) = new_state.wayland_theme {
-            window.set_wayland_theme(translate_wayland_theme(new_wayland_theme));
+            window.set_wayland_theme(new_wayland_theme);
         }
     }
 
@@ -744,12 +744,12 @@ fn initialize_os_window_linux_extensions(
     window: &GlutinWindow,
 ) {
     use glutin::platform::unix::WindowExtUnix;
-    use crate::wr_translate::winit_translate::{translate_window_icon, translate_wayland_theme};
+    use crate::wr_translate::winit_translate::{translate_window_icon};
 
     window.set_urgent(new_state.request_user_attention);
 
     if let Some(new_wayland_theme) = new_state.wayland_theme {
-        window.set_wayland_theme(translate_wayland_theme(new_wayland_theme));
+        window.set_wayland_theme(new_wayland_theme);
     }
 
     window.set_window_icon(new_state.window_icon.clone().and_then(|ic| translate_window_icon(ic).ok()));

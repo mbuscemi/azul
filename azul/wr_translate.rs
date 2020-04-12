@@ -120,11 +120,10 @@ pub(crate) mod winit_translate {
     };
     #[cfg(target_os = "linux")]
     use glutin::platform::unix::{
-        WaylandTheme as WinitWaylandTheme,
         XWindowType as WinitXWindowType,
     };
     #[cfg(target_os = "linux")]
-    use azul_core::window::{WaylandTheme, XWindowType};
+    use azul_core::window::{XWindowType};
 
     #[inline(always)]
     pub(crate) fn translate_logical_position(input: LogicalPosition) -> WinitLogicalPosition<f64> {
@@ -227,23 +226,6 @@ pub(crate) mod winit_translate {
     #[inline]
     pub(crate) fn translate_taskbar_icon(input: TaskBarIcon) -> Result<WinitIcon, WinitBadIcon> {
         WinitIcon::from_rgba(input.rgba_bytes, 256, 256)
-    }
-
-    #[cfg(target_os = "linux")]
-    #[inline]
-    pub(crate) fn translate_wayland_theme(input: WaylandTheme) -> WinitWaylandTheme {
-        WinitWaylandTheme {
-            primary_active: input.primary_active,
-            primary_inactive: input.primary_inactive,
-            secondary_active: input.secondary_active,
-            secondary_inactive: input.secondary_inactive,
-            close_button_hovered: input.close_button_hovered,
-            close_button: input.close_button,
-            maximize_button_hovered: input.maximize_button_hovered,
-            maximize_button: input.maximize_button,
-            minimize_button_hovered: input.minimize_button_hovered,
-            minimize_button: input.minimize_button,
-        }
     }
 
     #[inline]

@@ -65,7 +65,6 @@ impl<T> fmt::Debug for UiState<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
             "UiState {{ \
-
                 dom: {:?}, \
                 dynamic_css_overrides: {:?}, \
                 tag_ids_to_hover_active_states: {:?}, \

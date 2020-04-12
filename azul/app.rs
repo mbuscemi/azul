@@ -718,7 +718,6 @@ fn send_user_event<'a, T>(
     ev: AzulUpdateEvent<T>,
     eld: &mut EventLoopData<'a, T>,
 ) {
-
     use azul_core::window::AzulUpdateEvent::*;
     use crate::wr_translate::wr_translate_document_id;
 
@@ -730,7 +729,6 @@ fn send_user_event<'a, T>(
 
     match ev {
         CreateWindow { window_create_options } => {
-
             let event_loop_target = match &eld.event_loop_target {
                 Some(s) => s,
                 None => return,
@@ -786,7 +784,6 @@ fn send_user_event<'a, T>(
             eld.reverse_window_id_mapping.insert(window_id, glutin_window_id);
         },
         CloseWindow { window_id } => {
-
             // Close the window
             // TODO: Invoke callback to reject the window close event!
 
@@ -816,7 +813,6 @@ fn send_user_event<'a, T>(
             eld.render_api.api.delete_document(wr_translate_document_id(w.internal.document_id));
         },
         DoHitTest { window_id } => {
-
             // Hit test if any nodes were hit, see if any callbacks need to be called
 
             let mut callbacks_update_screen = false;
@@ -919,7 +915,6 @@ fn send_user_event<'a, T>(
             }
         },
         RebuildUi { window_id } => {
-
             // Call the .layout() function, build UiState
             {
                 let glutin_window_id = match eld.reverse_window_id_mapping.get(&window_id) {
@@ -945,7 +940,6 @@ fn send_user_event<'a, T>(
             send_user_event(AzulUpdateEvent::RestyleUi { window_id, skip_layout: false }, eld);
         },
         RestyleUi { window_id, skip_layout } => {
-
             // Cascade the CSS to the HTML nodes
             {
                 let glutin_window_id = match eld.reverse_window_id_mapping.get(&window_id) {
@@ -967,7 +961,6 @@ fn send_user_event<'a, T>(
             }
         },
         RelayoutUi { window_id } => {
-
             use azul_core::display_list::SolvedLayout;
 
             // Layout the CSSOM
@@ -1014,7 +1007,6 @@ fn send_user_event<'a, T>(
             send_user_event(AzulUpdateEvent::RebuildDisplayList { window_id }, eld);
         },
         RebuildDisplayList { window_id } => {
-
             // Build the display list
             {
                 let glutin_window_id = match eld.reverse_window_id_mapping.get(&window_id) {
@@ -1045,7 +1037,6 @@ fn send_user_event<'a, T>(
             send_user_event(AzulUpdateEvent::SendDisplayListToWebRender { window_id }, eld);
         },
         SendDisplayListToWebRender { window_id } => {
-
             // Build the display list
             {
                 let glutin_window_id = match eld.reverse_window_id_mapping.get(&window_id) {
@@ -1171,8 +1162,6 @@ fn initialize_ui_state_cache<T>(
     full_window_states: &mut BTreeMap<GlutinWindowId, FullWindowState>,
     layout_callback: LayoutCallback<T>,
 ) -> BTreeMap<GlutinWindowId, BTreeMap<DomId, UiState<T>>> {
-
-
     let mut ui_state_map = BTreeMap::new();
 
     for (glutin_window_id, window) in windows {

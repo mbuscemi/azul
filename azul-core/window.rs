@@ -24,6 +24,11 @@ use crate::{
     ui_state::UiState,
     display_list::{SolvedLayoutCache, GlTextureCache, CachedDisplayList},
 };
+use glutin::platform::unix::{
+    Theme,
+    ButtonState,
+    ButtonState::{ Hovered, Idle, Disabled }
+};
 
 pub const DEFAULT_TITLE: &str = "Azul App";
 pub const DEFAULT_WIDTH: f32 = 800.0;
@@ -830,6 +835,40 @@ pub struct WaylandTheme {
     pub minimize_button_hovered: [u8; 4],
     /// Minimize button color
     pub minimize_button: [u8; 4],
+}
+
+impl Theme for WaylandTheme {
+    fn primary_color(&self, window_active: bool) -> [u8; 4] {
+        if window_active { self.primary_active } else { self.primary_inactive }
+    }
+
+    fn secondary_color(&self, window_active: bool) -> [u8; 4] {
+        if window_active { self.secondary_active } else { self.secondary_inactive }
+    }
+
+    fn close_button_color(&self, status: ButtonState) -> [u8; 4] {
+        match status {
+            Hovered => self.close_button_hovered,
+            Idle => self.close_button,
+            Disabled => self.close_button,
+        }
+    }
+
+    fn minimize_button_color(&self, status: ButtonState) -> [u8; 4] {
+        match status {
+            Hovered => self.minimize_button_hovered,
+            Idle => self.minimize_button,
+            Disabled => self.minimize_button,
+        }
+    }
+
+    fn maximize_button_color(&self, status: ButtonState) -> [u8; 4] {
+        match status {
+            Hovered => self.maximize_button_hovered,
+            Idle => self.maximize_button,
+            Disabled => self.maximize_button,
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
