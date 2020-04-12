@@ -175,7 +175,7 @@ impl<T> DomXml<T> {
 
     /// Parses and loads a DOM from an XML string
     ///
-    /// Note: Needs at least one `<app></app>` node in order to not fail
+    /// Note: Needs at least one `<body></body>` node in order to not fail
     #[inline]
     pub fn new(xml: &str, component_map: &mut XmlComponentMap<T>) -> Result<Self, XmlParseError> {
         let parsed_dom = parse_xml_string(xml)?;
@@ -186,9 +186,9 @@ impl<T> DomXml<T> {
         })
     }
 
-    /// Creates a mock `<app></app>` wrapper, so that the `Self::new()` function doesn't fail
+    /// Creates a mock `<body></body>` wrapper, so that the `Self::new()` function doesn't fail
     pub fn mock(xml: &str) -> Self {
-        let actual_xml = format!("<app>{}</app>", xml);
+        let actual_xml = format!("<body>{}</body>", xml);
         Self::new(&actual_xml, &mut XmlComponentMap::default()).unwrap()
     }
 
@@ -816,7 +816,7 @@ pub fn get_body_node(root_nodes: &[XmlNode]) -> Result<XmlNode, XmlParseError> {
 
     let mut body_node_iterator = root_nodes.iter().filter(|node| {
         let node_type_normalized = normalize_casing(&node.node_type);
-        &node_type_normalized == "app"
+        &node_type_normalized == "body"
     }).cloned();
 
     let body_node = body_node_iterator.next().ok_or(XmlParseError::NoRootComponent)?;
@@ -1579,9 +1579,9 @@ fn test_compile_dom_1() {
             <div id="a" class="b" draggable="true"></div>
         </component>
 
-        <app>
+        <body>
             <Test />
-        </app>
+        </body>
     "#;
     let s1_expected = r#"
         fn render_component_test<T>() -> Dom<T> {
